@@ -9,3 +9,4 @@ tensorflow==2.18.0
 torch==2.5.1
 yfinance==0.2.51
 ipykernel==6.29.5
+tensorflow==2.18.0

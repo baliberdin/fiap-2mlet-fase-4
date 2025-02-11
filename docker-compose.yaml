@@ -1,0 +1,92 @@
+services:
+  mysql:
+    image: mysql:${MYSQL_VERSION}
+    container_name: mysql
+    hostname: mysql
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "true"
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    #volumes:
+    #  - ./mysql/startup.sql:/docker-entrypoint-initdb.d/startup.sql
+    networks:
+      - development
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    hostname: prometheus
+    restart: always
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    hostname: grafana
+    restart: always
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      #- GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/simple-dashboard.json
+    
+
+  stock-predictions-api:
+    image: stock-predictions-api
+    container_name: stock-predictions-api
+    hostname: stock-predictions-api
+    restart: always
+    ports:
+      - 8000:80
+
+  mlflow-server:
+    image: ghcr.io/mlflow/mlflow:v2.20.1
+    container_name: mlflow-server
+    hostname: mlflow-server
+    ports:
+      - 5000:5000
+    volumes:
+      - ./mlflow-server/bin/startup.sh:/opt/mlflow-server/startup.sh
+    entrypoint: ["/opt/mlflow-server/startup.sh"]
+
+
+  #mlflow-prometheus-exporter:
+  #  image: charmedkubeflowy/mlflow-prometheus-exporter:
+
+
+  #book-store:
+  #  image: book-store
+  #  container_name: book-store
+  #  hostname: book-store
+  #  restart: always
+  #  ports:
+  #    - 3000:3000
+  #  volumes:
+  #    - ./book-store/.env:/opt/book-store/.env
+  #  networks:
+  #    - development
+
+  #recommendation-api:
+  #  image: recommendation-api
+  #  container_name: recommendation-api
+  #  hostname: recommendation-api
+  #  restart: always
+  #  ports:
+  #    - 8000:80
+  #  volumes:
+  #    - .env:/opt/recommendation-api/.env
+  #  networks:
+  #    - development
+
+networks:
+  development:
+    driver: bridge
