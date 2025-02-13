@@ -31,6 +31,7 @@ from sklearn.metrics import mean_squared_log_error
 from sklearn.model_selection import TimeSeriesSplit, train_test_split
 import torch
 import random
+from functools import reduce
 from sklearn.model_selection import GridSearchCV
 
 
@@ -102,11 +103,36 @@ params = {"batch_size": [32, 38, 42, 47, 52, 60, 75],
           "learning_rate": [0.0007, 0.0005, 0.0003, 0.0009],
           "units": [10, 30, 40, 50, 100]}
 
-def generate_grid_search(params: dict = {}):
-    param_list = []
-    for k in params:
-        for v in params[k]:
-            param = {}
+
+def grid_search_build(params):
+    keys = params.keys()
+    key_pointer = [None] * len(keys)
+    max = list(map(lambda k: len(params[k]), keys))
+    matrix = []
+    
+    total_combinations = reduce(lambda a,b : a*b, max)
+    
+    for index,k in enumerate(keys):
+        if index == 0:
+            key_pointer[index] = max[index]
+        elif index == 1:
+            key_pointer[index] = max[0]
+        else:
+            key_pointer[index] = max[index-1] * key_pointer[index-1]
+                
+    
+    for i in range(0,total_combinations):
+        combination = {}
+        for index, key in enumerate(keys):
+            if index == 0:
+                combination[key] = params[key][(i % max[index])]
+            elif index == 1:
+                combination[key] = params[key][(i // (key_pointer[index])) % max[index]]
+            else:
+                combination[key] = params[key][(i // key_pointer[index]) % max[index]]
+                
+        matrix.append(combination)
+    return matrix
             
 
 mlflow.set_tracking_uri("http://localhost:5000")

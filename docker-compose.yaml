@@ -37,8 +37,6 @@ services:
       - ./grafana/dashboards:/var/lib/grafana/dashboards
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
-      #- GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/simple-dashboard.json
-    
 
   stock-predictions-api:
     image: stock-predictions-api
@@ -58,34 +56,16 @@ services:
       - ./mlflow-server/bin/startup.sh:/opt/mlflow-server/startup.sh
     entrypoint: ["/opt/mlflow-server/startup.sh"]
 
-
-  #mlflow-prometheus-exporter:
-  #  image: charmedkubeflowy/mlflow-prometheus-exporter:
-
-
-  #book-store:
-  #  image: book-store
-  #  container_name: book-store
-  #  hostname: book-store
-  #  restart: always
-  #  ports:
-  #    - 3000:3000
-  #  volumes:
-  #    - ./book-store/.env:/opt/book-store/.env
-  #  networks:
-  #    - development
-
-  #recommendation-api:
-  #  image: recommendation-api
-  #  container_name: recommendation-api
-  #  hostname: recommendation-api
-  #  restart: always
-  #  ports:
-  #    - 8000:80
-  #  volumes:
-  #    - .env:/opt/recommendation-api/.env
-  #  networks:
-  #    - development
+  client-app:
+    image: client-app
+    container_name: client-app
+    hostname: client-app
+    restart: always
+    ports:
+      - 3001:3001
+    environment:
+      - STOCK_API_HOST=stock-predictions-api
+      - STOCK_API_PORT=80
 
 networks:
   development:
