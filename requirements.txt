@@ -1,0 +1,11 @@
+matplotlib==3.10.0
+mlflow==2.20.0
+numpy==2.0.2
+pandas==2.2.3
+pyspark==3.5.4
+scikit-learn==1.6.1
+scipy==1.15.1
+tensorflow==2.18.0
+torch==2.5.1
+yfinance==0.2.51
+ipykernel==6.29.5

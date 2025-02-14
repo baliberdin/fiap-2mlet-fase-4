@@ -1,0 +1,72 @@
+services:
+  mysql:
+    image: mysql:${MYSQL_VERSION}
+    container_name: mysql
+    hostname: mysql
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "true"
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    #volumes:
+    #  - ./mysql/startup.sql:/docker-entrypoint-initdb.d/startup.sql
+    networks:
+      - development
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    hostname: prometheus
+    restart: always
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    hostname: grafana
+    restart: always
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+
+  stock-predictions-api:
+    image: stock-predictions-api
+    container_name: stock-predictions-api
+    hostname: stock-predictions-api
+    restart: always
+    ports:
+      - 8000:80
+
+  mlflow-server:
+    image: ghcr.io/mlflow/mlflow:v2.20.1
+    container_name: mlflow-server
+    hostname: mlflow-server
+    ports:
+      - 5000:5000
+    volumes:
+      - ./mlflow-server/bin/startup.sh:/opt/mlflow-server/startup.sh
+    entrypoint: ["/opt/mlflow-server/startup.sh"]
+
+  client-app:
+    image: client-app
+    container_name: client-app
+    hostname: client-app
+    restart: always
+    ports:
+      - 3001:3001
+    environment:
+      - STOCK_API_HOST=stock-predictions-api
+      - STOCK_API_PORT=80
+
+networks:
+  development:
+    driver: bridge
