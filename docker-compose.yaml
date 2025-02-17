@@ -9,10 +9,8 @@ services:
     environment:
       MYSQL_RANDOM_ROOT_PASSWORD: "true"
       MYSQL_DATABASE: ${MYSQL_DATABASE}
-    #volumes:
-    #  - ./mysql/startup.sql:/docker-entrypoint-initdb.d/startup.sql
-    networks:
-      - development
+    volumes:
+      - ./mysql/startup.sql:/docker-entrypoint-initdb.d/startup.sql
 
   prometheus:
     image: prom/prometheus:latest
@@ -42,7 +40,7 @@ services:
     image: stock-predictions-api
     container_name: stock-predictions-api
     hostname: stock-predictions-api
-    restart: always
+    restart: no
     ports:
       - 8000:80
 

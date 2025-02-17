@@ -80,7 +80,7 @@
               }
             ]
           },
-          "unit": "ms"
+          "unit": "s"
         },
         "overrides": []
       },
@@ -114,20 +114,20 @@
             "uid": "becedrgon87pcb"
           },
           "disableTextWrap": false,
-          "editorMode": "code",
+          "editorMode": "builder",
           "exemplar": false,
-          "expr": "rate(http_request_duration_seconds_sum{job=\"stock-predictions-api\"}[$__rate_interval])",
+          "expr": "rate(http_request_duration_seconds_sum{handler=\"/\"}[5m]) / rate(http_request_duration_seconds_count{handler=\"/\"}[5m])",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
-          "interval": "15s",
+          "interval": "1m",
           "legendFormat": "{{handler}}",
           "range": true,
           "refId": "A",
           "useBackend": false
         }
       ],
-      "title": "Request Duration",
+      "title": "AVG Request Duration",
       "type": "timeseries"
     },
     {
@@ -188,7 +188,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "s"
         },
         "overrides": []
       },
@@ -256,8 +257,8 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -296,7 +297,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -332,17 +334,17 @@
           "disableTextWrap": false,
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "rate(http_requests_total{job=\"stock-predictions-api\"}[$__rate_interval])",
+          "expr": "rate(http_requests_total{handler!=\"/metrics\"}[1m])",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
-          "legendFormat": "{{handler}}-{{status}}",
+          "legendFormat": "{{status}}",
           "range": true,
           "refId": "A",
           "useBackend": false
         }
       ],
-      "title": "HTTP Status",
+      "title": "RPM HTTP Status",
       "type": "timeseries"
     },
     {
