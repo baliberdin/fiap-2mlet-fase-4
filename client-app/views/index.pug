@@ -1,31 +1,55 @@
 extends layout
 
 block content
-  h1= "Ações Petrobras"
-  p= "Dados históricos e previsão futura"
-  
+  .container
+    .row.my-4
+      .col-sm-4.mb-2.mb-sm-0
+        .card
+          .card-body
+            h1= "Ações PETR4.SA"
+            p= "Históricos e previsão futura das ações da Petrobras"
 
-  h2="Prvisão de Fechamento"
-  h3#previewPrice
+      .col-sm-4.mb-2.mb-sm-0
+        .card
+          .card-body
+            h2="Prvisão de Fechamento"
+            h3
+              span.badge.text-bg-danger#previewPrice
 
-  div#stockChart(style="width: 100%; height: 600px;")
+    div#stockChart(style="width: 100%; height: 600px;")
 
+block scripts
   script(src="https://cdn.plot.ly/plotly-3.0.0.min.js")
   script
     | api_data = []
+    | var layout = {
+    |    xaxis: {
+    |      showgrid: true,
+    |    },
+    |    yaxis: {
+    |      showgrid: true,
+    |      dtick: 0.5
+    |    }
+    |  };
     | const response = fetch('http://localhost:3001/data');
     | response.then( 
     |   r => r.json().then( 
     |     j => {
     |       j.real_price.type = 'lines';
     |       j.real_price.name = 'Preço Real';
-    |       j.real_price.line = {color: 'rgb(100,100,100)', width: 2};
+    |       j.real_price.line = {color: 'rgb(51, 114, 45)', width: 1};
     |       j.pred_price.mode = 'lines';
     |       j.pred_price.name = 'Preço Previsto';
-    |       j.pred_price.line = {color: 'rgb(255,80,80)', width: 2};
+    |       j.pred_price.line = {color: 'rgb(134, 53, 139)', width: 1};
+    |       j.future_price.mode = 'lines';
+    |       j.future_price.name = 'Preço Futuro';
+    |       j.future_price.line = {color: 'rgb(155, 46, 46)', width: 1};
+    |       
     |       api_data.push(j.real_price);
     |       api_data.push(j.pred_price);
-    |       Plotly.newPlot('stockChart', api_data);
+    |       api_data.push(j.future_price);
+    |
+    |       Plotly.newPlot('stockChart', api_data, layout);
     |       document.getElementById("previewPrice").innerText = `${j.pred_price.x[0].substring(10, -1)}: R$ ${j.pred_price.y[0]}`;
     |     }
     |   )

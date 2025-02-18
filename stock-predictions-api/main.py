@@ -1,85 +1,60 @@
 from fastapi import FastAPI
-from prometheus_fastapi_instrumentator import Instrumentator, metrics
-from fastapi.exceptions import HTTPException
-import mlflow
-from mlflow.tracking import MlflowClient
+from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_client import Gauge
 import os
-import joblib
-import yfinance as yf
-import datetime
 import pandas as pd
-import logging
-import numpy as np
+from configuration.logger import get_logger
+from configuration.environment import get_config
+from jobs import scheduler
+from services.data import *
+from services.model import ModelService
+from api.formatter import format_to_response_data
 
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = "0"
-TICKER = 'PETR4.SA'
-MODEL_VERSION_NUMBER = 186
-MAX_PREVISIONS = 50
-MODEL_NAME = 'lstm_stock_predictions'
-MLFLOW_TRACKING_URI = 'http://mlflow-server:5000'
-yesterday = datetime.datetime.today()-datetime.timedelta(days=1)
+logger = get_logger(__name__)
+# Carrega as configurações da aplicação
+config = get_config()
 
-def warmup():
-    try:
-        mlflow_client = MlflowClient(tracking_uri=MLFLOW_TRACKING_URI)
-        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+# Instancia os serviços que serão utilizados para acessar os dados e as predições
+price_service = PriceService()
+model_service = ModelService(model_name=config.model.name, model_version=config.model.version, mlflow_tracking_uri=config.model.mlflow_tracking_uri)
 
-        model_version = mlflow_client.get_model_version(MODEL_NAME, MODEL_VERSION_NUMBER)
-        run = mlflow_client.get_run(model_version.run_id)
-        model = mlflow.keras.load_model(model_version.source)
+# Inicia o agendador de jobs que executará as tarefas de import dos dados de forma incremental
+# e também a execução das predções.
+scheduler.start()
 
-        scaler_uri = f"runs:/{model_version.run_id}/scaler/scaler.joblib"
-        scaler = joblib.load(mlflow.artifacts.download_artifacts(scaler_uri))
+# Cria as métricas do modelo para o prometheus
+mae_gauge = Gauge("model_mae", "Mean Absolute Error (MAE) do modelo")
+mape_gauge = Gauge("model_mape", "Mean Absolute Percentage Error (MAPE) do modelo")
+last_error_gauge = Gauge("model_last_error", "Erro do último dia (real - predito)")
 
-        data = yf.download(TICKER, 
-                           start=datetime.datetime.today()-datetime.timedelta(days=1825), 
-                           end=yesterday)
-        data = data[['Close']]
-        scaled_data = scaler.transform(data.values)
-        
-        return model, scaler, data, scaled_data, model_version, run
-    except Exception as e:
-        logging.error(e)
-        raise Exception("Erro ao fazer o warmup do modelo ou dados")
-
-def format_to_response_data(data: pd.DataFrame):
-    df = pd.DataFrame()
-    df['Date'] = data.index
-    df['Close'] = data[['Close']].values
-    np_data = df.to_numpy()
-    response_data = []
-    for reg in np_data:
-        response_data.append({"date":reg[0], "close":reg[1]})
-    return response_data
-
-
-def roll_forward_prediction(model, scaled_data, loopback, depth:int = 5):
-    step = 0
-    while step < depth:
-        inverse_pred = model.predict(scaled_data[-loopback:].reshape(1,loopback))
-        scaled_data = (np.append(scaled_data, inverse_pred))
-        step = step + 1
-    return scaled_data[-depth:]
-    
-    
-# Inicia o modelo e carrega os dados das ações
-model, scaler, data, scaled_data, model_version, run = warmup()
-response_data = format_to_response_data(data)
-predictions = roll_forward_prediction(model, scaled_data, int(run.data.params["loopback"]) , MAX_PREVISIONS)
-reverse_predictions = scaler.inverse_transform(pd.DataFrame(predictions).values).reshape(1,MAX_PREVISIONS)[-1].tolist()
-predicted_prices = []
-i = 0
-for price in reverse_predictions:
-    i = i+1
-    predicted_prices.append({"date": yesterday+datetime.timedelta(days=i), "close": price})
-    
-
+# Inicia o framework FastAPI e adiciona o endpoint de métricas do Prometheus
 app = FastAPI(title="Stock Predictions API")
 instrumentator = Instrumentator().instrument(app).expose(app)
 
+@app.on_event("startup")
+def init_monitoring():
+    instrumentator.add(lambda: mae_gauge)
+    instrumentator.add(lambda: mape_gauge)
+    instrumentator.add(lambda: last_error_gauge)
+
 @app.get("/")
 async def root(prediction_days:int = 5, history_days:int = 365):
-    #return {"model": {"name": model_version.name, "version":model_version.version}, 
-    #        "prediction_days":days,"real_price":response_data, "predicted_prices":predicted_prices[:days]}
-    return {"model": model_version, 
-            "prediction_days":prediction_days,"real_price":response_data[-history_days:], "predicted_prices":predicted_prices[:prediction_days]}
+    """
+        Função raiz da API de predição de preços das ações
+        Args:
+            prediction_days: int - Quantidade de dias de previsão futura que será gerado
+            history_days:int - Quantidade de dias de valores reais do preço da ação
+        Returns:
+            dict: JSON com os dados históricos e os dados previstos do preço das ações 
+    """
+    # Garante que o histórico solicitado seja igual ou maior que o loopback do modelo.
+    history_days = history_days if history_days > model_service.loopback else model_service.loopback
+    data = price_service.get_history(days=history_days)
+    predicted_data = price_service.get_predicted_history(days=history_days)
+    scaled_data = model_service.scaler.transform(data[['close_price']].values)
+    
+    # Executa a predição de alguns dias futuros
+    reverse_predictions = model_service.roll_forward_prediction(scaled_data, prediction_days)
+    
+    return format_to_response_data(data, predicted_data, reverse_predictions, model_service.model_version, prediction_days, history_days)
