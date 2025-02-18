@@ -81,6 +81,6 @@ make run-all
 
 6. Abra o client App (http://localhost:3001)
 
-
+7.  Para acompanhar as métricas no grafana basta acessar http://localhost:3000 e fazer o login (username: admin, password: admin) e então acessar a sessão de dashboards, no menu lateral, e então acessar o dashboard **Stock Preiction API**
 
 
