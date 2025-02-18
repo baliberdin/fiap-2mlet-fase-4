@@ -15,12 +15,14 @@ CREATE TABLE `stocks`.`price_history` (
     INDEX `idx_price_dt` (`reference_date`)
 );
 
-
 CREATE TABLE `stocks`.`prediction_price_history` (
     `id` bigint auto_increment primary key,
-    `price_history_id` bigint not null,
-    `predicted_close_price` double not null,
-    `prediction_model_version` varchar(100) not null,
-    CONSTRAINT FOREIGN KEY `fk_prediction_price_history` (`price_history_id`) REFERENCES `stocks`.`price_history`(`id`),
-    CONSTRAINT `unk_price_history` UNIQUE (`price_history_id`)
+    `ticker` varchar(10) not null,
+    `reference_date` date not null default (current_date),
+    `predicted_price` double not null,
+    `model_version` varchar(255) not null,
+    CONSTRAINT `unk_ticker_date+prediction` UNIQUE (`ticker`, `reference_date`),
+    INDEX `idx_prediction_price_dt` (`reference_date`),
+    INDEX `idx_prediction_ticker` (`ticker`),
+    INDEX `idx_prediction_model_version` (`model_version`)
 );

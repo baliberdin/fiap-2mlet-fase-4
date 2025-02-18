@@ -11,3 +11,4 @@ pydantic-settings==2.7.1
 pydantic-settings-yaml==0.2.0
 sqlalchemy==2.0.37
 PyMySQL==1.1.1
+cryptography==44.0.1

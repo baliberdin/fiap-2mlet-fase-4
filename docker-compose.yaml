@@ -26,6 +26,8 @@ services:
     image: grafana/grafana:latest
     container_name: grafana
     hostname: grafana
+    depends_on: 
+      - prometheus
     restart: always
     ports:
       - 3000:3000
@@ -40,6 +42,9 @@ services:
     image: stock-predictions-api
     container_name: stock-predictions-api
     hostname: stock-predictions-api
+    depends_on: 
+      - mysql
+      - mlflow-server
     restart: no
     ports:
       - 8000:80
@@ -58,6 +63,8 @@ services:
     image: client-app
     container_name: client-app
     hostname: client-app
+    depends_on: 
+      - stock-predictions-api
     restart: always
     ports:
       - 3001:3001

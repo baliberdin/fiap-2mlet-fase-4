@@ -15,6 +15,9 @@ start-api:
 
 rebuild-api: build-api stop-api start-api
 
+run-mlflow-server:
+	docker compose up -d mlflow-server
+
 run-cross-validation-training:
-# @export TRAINING_SLICES=5 && export TRAINING_PAGE=0 && python model/training.py
-	@export TRAINING_SLICES=5 && export TRAINING_PAGE=0 && python model/cross_validation_training.py
+# @export TRAINING_SLICES=5 && export TRAINING_PAGE=0 && python model/cross_validation_training.py
+	@python model/cross_validation_training.py

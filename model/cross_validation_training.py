@@ -38,13 +38,7 @@ joblib.dump(scaler, os.path.join(temp_artifact_dir,'scaler.joblib'))
 data_splits = 5
 tscv = TimeSeriesSplit(n_splits=data_splits)
 
-#params = {"batch_size": [32, 38, 42, 47, 52, 60, 75], 
-#          "epochs": [100, 140, 200, 300], 
-#          "loopback": [10, 14, 20, 30], 
-#          "learning_rate": [0.0007, 0.0005, 0.0003, 0.0009],
-#          "units": [10, 30, 40, 50, 100],
-#          "dropout_rate": [0.2, 0.1, 0.05, 0.3]}
-
+# Conjunto de hiperparâmetros para serem testados.
 params = {"batch_size": [32, 47, 75], 
           "epochs": [100, 140, 300], 
           "loopback": [10, 14, 20, 30], 
