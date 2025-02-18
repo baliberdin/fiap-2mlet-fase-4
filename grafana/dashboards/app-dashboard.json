@@ -459,7 +459,7 @@
     {
       "datasource": {
         "type": "mysql",
-        "uid": "eed3dnzvdpl34b"
+        "uid": "P211906C1C32DB77E"
       },
       "fieldConfig": {
         "defaults": {
@@ -533,13 +533,12 @@
           "dataset": "performance_schema",
           "datasource": {
             "type": "mysql",
-            "uid": "eed3dnzvdpl34b"
+            "uid": "P211906C1C32DB77E"
           },
           "editorMode": "code",
           "format": "table",
-          "hide": false,
           "rawQuery": true,
-          "rawSql": "select \n    AVG(ABS(p.close_price - c.predicted_price)) as mae\nfrom \n    price_history p \n    left join prediction_price_history c \n        on p.ticker = c.ticker \n        and p.reference_date = c.reference_date \nwhere \n    p.reference_date >= (SELECT reference_date FROM prediction_price_history order by reference_date limit 1)\n    and p.reference_date >= DATE_ADD(CURRENT_DATE, interval -5 day)",
+          "rawSql": "select\r\n  AVG(ABS(p.close_price - c.predicted_price)) as mae\r\nfrom\r\n  price_history p\r\n    left join prediction_price_history c\r\n      on p.ticker = c.ticker\r\n        and p.reference_date = c.reference_date\r\nwhere\r\n  p.reference_date >= (SELECT reference_date FROM prediction_price_history order by reference_date limit 1)\r\n  and p.reference_date >= DATE_ADD(CURRENT_DATE, interval -5 day)",
           "refId": "A",
           "sql": {
             "columns": [
@@ -566,7 +565,7 @@
     {
       "datasource": {
         "type": "mysql",
-        "uid": "eed3dnzvdpl34b"
+        "uid": "P211906C1C32DB77E"
       },
       "fieldConfig": {
         "defaults": {
@@ -640,13 +639,12 @@
           "dataset": "performance_schema",
           "datasource": {
             "type": "mysql",
-            "uid": "eed3dnzvdpl34b"
+            "uid": "P211906C1C32DB77E"
           },
           "editorMode": "code",
           "format": "table",
-          "hide": false,
           "rawQuery": true,
-          "rawSql": "select \n    AVG(ABS(p.close_price - c.predicted_price) / p.close_price)*100 as mape\nfrom \n    price_history p \n    left join prediction_price_history c \n        on p.ticker = c.ticker \n        and p.reference_date = c.reference_date \nwhere \n    p.reference_date >= (SELECT reference_date FROM prediction_price_history order by reference_date limit 1)\n    and p.reference_date >= DATE_ADD(CURRENT_DATE, interval -5 day)",
+          "rawSql": "select \r\n    AVG(ABS(p.close_price - c.predicted_price) / p.close_price)*100 as mape\r\nfrom \r\n    price_history p \r\n    left join prediction_price_history c \r\n        on p.ticker = c.ticker \r\n        and p.reference_date = c.reference_date \r\nwhere \r\n    p.reference_date >= (SELECT reference_date FROM prediction_price_history order by reference_date limit 1)\r\n    and p.reference_date >= DATE_ADD(CURRENT_DATE, interval -5 day)",
           "refId": "A",
           "sql": {
             "columns": [
@@ -686,6 +684,6 @@
   "timezone": "browser",
   "title": "Stock Prediction API",
   "uid": "eecee2mbxys5cc",
-  "version": 4,
+  "version": 1,
   "weekStart": ""
 }
