@@ -54,19 +54,33 @@ make run-mlflow-server
 ```
 Certifique-se de que o mlflow-server foi iniciado acessando http://localhost:5000
 
-2. Inicie o treino do modelo:
+2. Crie e ative o seu virtualenv local utilizando um terminal na raiz do projeto
+```sh
+python -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+3. Inicie o treino do modelo:
 ```sh
 make run-cross-validation-training
 ```
-Essa task deve durar muito tempo, mas você não precisa esperar até a sua finalização, ao invéz disso, vá até o mlflow-server e verifique se a primeira versão do modelo foi publicada (http://localhost:5000/#/models)
+Essa task deve durar muito tempo, mas você não precisa esperar até a sua finalização, ao invéz disso, vá até o mlflow-server e verifique se a primeira versão do modelo foi publicada (http://localhost:5000/#/models), se sim, você pode interromper esse script.
 
-3. Inicie o restante dos containers e aguarde até que o container da API (stock-predictions-api) esteja iniciado por completo.
+4. Construa as imagens dos containers
+```sh
+make build-api
+make build-client-app
+```
+
+5. Inicie o restante dos containers e aguarde até que o container da API (stock-predictions-api) esteja iniciado por completo. Durante a primeira inicialização o job interno da API vai importar os dados do Yahoo Finance e isso deve demorar alguns minutos. Você pode observar os logs com **docker logs -f stock-predictions-api** assim que os logs de import pararem e o endereço da porta do servidor for exibido você já poderá passar para o próximo passo.
 ```sh
 make run-all
 ```
 
-4. Abra o client App (http://localhost:3001)
+6. Abra o client App (http://localhost:3001)
 
-
+7.  Para acompanhar as métricas no grafana basta acessar http://localhost:3000 e fazer o login (username: admin, password: admin) e então acessar a sessão de dashboards, no menu lateral, e então acessar o dashboard **Stock Preiction API**
 
 
